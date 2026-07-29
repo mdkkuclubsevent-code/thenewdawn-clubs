@@ -52,16 +52,21 @@
 
   /* ===== Dawn scene (fixed background imagery, pure SVG) ===== */
   .scene{position:fixed; inset:0; z-index:var(--z-scene); pointer-events:none; overflow:hidden}
-  .scene svg{width:100%; height:100%; display:block}
-  /* จอมือถือแนวตั้ง: ฉากเป็นภาพแนวนอน (1440×900) พอ slice เอาตรงกลาง ดวงอาทิตย์ (x≈1080)
-     กับยอดเขาฝั่งขวาโดนตัดทิ้งหมด เหลือแต่ฟ้าโล่ง ๆ ดูเหมือนพื้นหลังไม่เต็มจอ
-     เลยคงอัตราส่วนภาพไว้แล้วเลื่อนกรอบที่มองเห็นไปคร่อมดวงอาทิตย์แทน
-     (-72% เป็นสัดส่วนของความกว้างภาพ จึงได้กรอบเดิมทุกขนาดจอ) */
+  .scene svg{position:absolute; inset:0; width:100%; height:100%; display:block}
+  /* จอมือถือแนวตั้ง: ใช้ฉากที่จัดองค์ประกอบใหม่สำหรับแนวตั้งโดยเฉพาะ ไม่ใช่การ slice ภาพแนวนอน
+     เพราะการ์ดกลางจอบังพื้นที่ y≈23%–72% ไว้ ถ้า slice ภาพ 1440×900 ดวงอาทิตย์ (y=600) กับ
+     ช่วงสีอุ่นของท้องฟ้า (stop 66%–100%) จะไปอยู่หลังการ์ดทั้งหมด เหลือให้เห็นแต่ฟ้าเขียวจาง
+     ฉากแนวตั้ง (720×900) จึงยกดวงอาทิตย์ไว้ที่ y≈17% และไล่สีอุ่นให้เร็วขึ้น ให้แถบฟ้าเหนือการ์ด
+     อ่านออกว่าเป็นรุ่งอรุณ ส่วนทิวเขาอยู่ใต้การ์ดพอดี
+     (ต้องระบุ .scene svg นำหน้าทั้งคู่ ไม่งั้น .scene svg{display:block} จะชนะด้วย specificity) */
+  .scene svg.scene-tall{display:none}
   @media (max-aspect-ratio: 4/5){
-    .scene svg{position:absolute; top:0; left:50%; width:auto; min-width:100%; height:100%;
-      transform:translateX(-72%)}
+    .scene svg.scene-wide{display:none}
+    .scene svg.scene-tall{display:block}
   }
-  .scene .rise{transform-origin:1080px 620px; animation:rise 1.4s var(--ease) both}
+  .scene-wide .rise{transform-origin:1080px 620px}
+  .scene-tall .rise{transform-origin:452px 146px}
+  .scene .rise{animation:rise 1.4s var(--ease) both}
   @keyframes rise{from{transform:translateY(46px); opacity:0}to{transform:translateY(0); opacity:1}}
   .scene .glow{animation:breathe 9s ease-in-out infinite alternate}
   @keyframes breathe{from{opacity:.85}to{opacity:1}}
@@ -568,7 +573,7 @@
 
 <!-- ===== Dawn scene: sunrise over the ridgelines (crafted SVG, offline-safe) ===== -->
 <div class="scene" aria-hidden="true">
-  <svg viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
+  <svg class="scene-wide" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg">
     <defs>
       <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="#cfe9e4"/>
@@ -604,6 +609,48 @@
           fill="#728b5c"/>
     <!-- prairie foreground -->
     <path d="M0,838 L1440,816 L1440,900 L0,900 Z" fill="#b0923f"/>
+  </svg>
+
+  <!-- ฉากแนวตั้งสำหรับมือถือ: อัตราส่วน viewBox 0.8 กว้างกว่าจอมือถือเสมอ (~0.42–0.5)
+       การ slice จึงตัดเฉพาะด้านข้าง ไม่ตัดบน-ล่าง องค์ประกอบสำคัญอยู่ใน x 171–549 -->
+  <svg class="scene-tall" viewBox="0 0 720 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="skyT" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#cbe6e3"/>
+        <stop offset="10%" stop-color="#dcecd0"/>
+        <stop offset="20%" stop-color="#f1eeb6"/>
+        <stop offset="32%" stop-color="#f9dda2"/>
+        <stop offset="46%" stop-color="#fec49c"/>
+        <stop offset="64%" stop-color="#fbba92"/>
+        <stop offset="100%" stop-color="#f7b58e"/>
+      </linearGradient>
+      <radialGradient id="sunGlowT" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ffe9b8" stop-opacity=".95"/>
+        <stop offset="45%" stop-color="#ffdca0" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="#ffdca0" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="sunDiscT" cx="40%" cy="36%" r="65%">
+        <stop offset="0%" stop-color="#fff7e0"/>
+        <stop offset="60%" stop-color="#ffde96"/>
+        <stop offset="100%" stop-color="#ffce7d"/>
+      </radialGradient>
+    </defs>
+    <rect width="720" height="900" fill="url(#skyT)"/>
+    <g class="rise">
+      <circle class="glow" cx="452" cy="146" r="232" fill="url(#sunGlowT)"/>
+      <circle cx="452" cy="146" r="74" fill="url(#sunDiscT)"/>
+    </g>
+    <!-- far ridge -->
+    <path d="M0,600 L120,568 L250,594 L380,556 L510,590 L630,558 L720,582 L720,900 L0,900 Z"
+          fill="#aecac2" opacity=".5"/>
+    <!-- mid ridge -->
+    <path d="M0,678 L150,638 L300,674 L450,634 L600,672 L720,646 L720,900 L0,900 Z"
+          fill="#8aa985" opacity=".82"/>
+    <!-- near hills -->
+    <path d="M0,774 L180,740 L340,776 L520,736 L660,774 L720,758 L720,900 L0,900 Z"
+          fill="#728b5c"/>
+    <!-- prairie foreground -->
+    <path d="M0,836 L720,818 L720,900 L0,900 Z" fill="#b0923f"/>
   </svg>
 </div>
 
