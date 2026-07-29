@@ -52,7 +52,15 @@
 
   /* ===== Dawn scene (fixed background imagery, pure SVG) ===== */
   .scene{position:fixed; inset:0; z-index:var(--z-scene); pointer-events:none; overflow:hidden}
-  .scene svg{width:100%; height:100%}
+  .scene svg{width:100%; height:100%; display:block}
+  /* จอมือถือแนวตั้ง: ฉากเป็นภาพแนวนอน (1440×900) พอ slice เอาตรงกลาง ดวงอาทิตย์ (x≈1080)
+     กับยอดเขาฝั่งขวาโดนตัดทิ้งหมด เหลือแต่ฟ้าโล่ง ๆ ดูเหมือนพื้นหลังไม่เต็มจอ
+     เลยคงอัตราส่วนภาพไว้แล้วเลื่อนกรอบที่มองเห็นไปคร่อมดวงอาทิตย์แทน
+     (-72% เป็นสัดส่วนของความกว้างภาพ จึงได้กรอบเดิมทุกขนาดจอ) */
+  @media (max-aspect-ratio: 4/5){
+    .scene svg{position:absolute; top:0; left:50%; width:auto; min-width:100%; height:100%;
+      transform:translateX(-72%)}
+  }
   .scene .rise{transform-origin:1080px 620px; animation:rise 1.4s var(--ease) both}
   @keyframes rise{from{transform:translateY(46px); opacity:0}to{transform:translateY(0); opacity:1}}
   .scene .glow{animation:breathe 9s ease-in-out infinite alternate}
@@ -680,7 +688,7 @@
   <div class="fp-sheet" id="fpSheet">
     <div class="fp-head">
       <div>
-        <div class="fp-kicker">MO DIN DAENG · FLOOR PLAN</div>
+        <div class="fp-kicker">MORDINDAENG · FLOOR PLAN</div>
         <div class="fp-title" id="fpTitle">แผนที่งาน</div>
       </div>
       <button class="fp-close" type="button" id="fpClose" onclick="closeFloorPlan()" aria-label="ปิดแผนที่">✕</button>
